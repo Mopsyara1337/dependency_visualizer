@@ -1,0 +1,4 @@
+package = "bash"
+repository = "https://archive.ubuntu.com/ubuntu/"
+test_mode = false
+output_file = "graph.png"
