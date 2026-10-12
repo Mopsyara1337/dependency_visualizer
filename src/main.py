@@ -7,6 +7,7 @@ from urllib.error import HTTPError
 from urllib.error import URLError
 
 import packages as pak
+import graph as gr
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 
@@ -46,7 +47,6 @@ def validate_output_file(config):
     if any(char in banned_chars for char in file.name):
         raise ValueError("Имя файла содержит запрещенные символы")
 
-
 def validate_config(config):
     """Проверка корректности параметров конфигурации"""
 
@@ -71,65 +71,77 @@ def validate_config(config):
 
     validate_output_file(config)
 
-def print_config(config):
-    for key, value in config.items():
-        print(f'{key} = {value}')
-
-def print_dependencies(depends, pre_depends, package_name):
-    print(f"Пакет: {package_name}\n")
-    print("Прямые зависимости (Depends):")
-    if not depends:
-        print("Нет зависимостей")
-    for dep in depends:
-        print(f"- {" | ".join(dep)}")
-
-    print("\nПредварительная зависимость (Pre-Depends):")
-    if not pre_depends:
-        print("Нет зависимостей")
-    for dep in pre_depends:
-        print(f"- {" | ".join(dep)}")
-
-
-def main():
+def prepare_config():
     try:
         config = load_config()
         validate_config(config)
     except FileNotFoundError:
         print("Файл не найден!")
-        return
+        return None
     except tomllib.TOMLDecodeError:
         print("Некорректный формат TOML")
-        return
+        return None
     except ValueError as e:
-        print(f'Ошибка компиляции: {e}')
+        print(f'Ошибка конфигурации: {e}')
+        return None
+    return config
+
+def prepare_package(config):
+    try:
+        packages_data = load_packages_data(config)
+    except HTTPError as e:
+        print(f"Ошибка HTTP: {e.code}")
+        return None
+    except URLError as e:
+        print(f"Ошибка подключения {e.reason}")
+        return None
+    except TimeoutError as e:
+        print(f"Истекло время ожидания {e}")
+        return None
+    except (gzip.BadGzipFile, EOFError, zlib.error, UnicodeDecodeError) as e:
+        print(f"Ошибка: {e}")
+        return None
+    except OSError as e:
+        print(f"Ошибка получения данных репозитория: {e}")
+        return None
+
+    return pak.build_package_index(packages_data)
+
+def load_packages_data(config):
+    if not config["test_mode"]:
+        packages_data = pak.fetch_packages(config["repository"])
+    else:
+        repository_path = PROJECT_DIR / config["repository"]
+        packages_data = repository_path.read_text(encoding="utf-8")
+
+    return packages_data
+
+
+def main():
+    config = prepare_config()
+    if config is None:
+        return
+
+    package_index = prepare_package(config)
+    if package_index is None:
         return
 
     try:
-        packages_data = pak.fetch_packages(config["repository"])
-        package = pak.find_package(packages_data, config["package"])
-    except HTTPError as e:
-        print(f"Ошибка HTTP: {e.code}")
-        return
-    except URLError as e:
-        print(f"Ошибка подключения {e.reason}")
-        return
-    except TimeoutError as e:
-        print(f"Истекло время ожидания {e}")
-        return
-    except (gzip.BadGzipFile, EOFError, zlib.error, UnicodeDecodeError) as e:
-        print(f"Ошибка: {e}")
-        return
+        graph, missing_packages = gr.build_dependency_graph(
+            package_index, config["package"])
     except ValueError as e:
-        print(f"Ошибка поиска пакета: {e}")
+        print(f"Ошибка построения графа: {e}")
         return
 
-    depends = pak.get_dependencies(package, "Depends")
-    pre_depends = pak.get_dependencies(package, "Pre-Depends")
-    print_dependencies(pak.parse_dependencies(depends),
-                       pak.parse_dependencies(pre_depends),
-                       config["package"])
+    print(f"Пакетов в графе: {len(graph)}")
+    print(f"Отсутствующих пакетов: {len(missing_packages)}")
 
+    print("Найденные пакеты:")
+    for name in graph:
+        print(name)
 
+    print("\nПакеты, отсутствующие в индексе")
+    print(missing_packages)
 
 if __name__ == '__main__':
     main()

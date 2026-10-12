@@ -1,0 +1,15 @@
+Package: A
+Depends: B | C, D
+Pre-Depends: E
+
+Package: B
+Depends: F
+
+Package: C
+
+Package: D
+
+Package: E
+Depends: F
+
+Package: F

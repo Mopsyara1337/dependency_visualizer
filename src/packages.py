@@ -12,16 +12,8 @@ def fetch_packages(repository_url):
         packages_data = gzip.decompress(file).decode("utf-8")
         return packages_data
 
-def find_package(packages_data, package_name):
-    packages = packages_data.split("\n\n")
-    for package in packages:
-        lines = package.splitlines()
-        for line in lines:
-            if line == f"Package: {package_name}":
-                return package
-    raise ValueError(f"Пакет {package_name} не найден в репозитории")
-
 def get_dependencies(package_data, field_name):
+    """Возвращает строку поля зависимостей (Depends / Pre-Depends)"""
     parts = []
     found = False
     for line in package_data.splitlines():
@@ -40,6 +32,7 @@ def get_dependencies(package_data, field_name):
     return " ".join(parts)
 
 def parse_dependencies(dependencies):
+    """Собирает зависимости из строки в список"""
     if not dependencies.strip():
         return []
     dependencies_list = []
@@ -53,3 +46,15 @@ def extract_package_name(dependency):
     result = dependency.split("(", 1)[0].strip()
     result = result.split(":", 1)[0].strip()
     return result
+
+def build_package_index(packages_data):
+    package_index = {}
+    packages = packages_data.split("\n\n")
+    for package in packages:
+        lines = package.splitlines()
+        for line in lines:
+            if line.startswith("Package: "):
+                name = line.removeprefix("Package: ")
+                package_index[name] = package
+                break
+    return package_index

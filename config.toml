@@ -1,4 +1,4 @@
-package = "bash"
-repository = "https://archive.ubuntu.com/ubuntu/"
-test_mode = false
+package = "Z"
+repository = "tests/repository.txt"
+test_mode = true
 output_file = "graph.png"
