@@ -1,4 +1,4 @@
-package = "Z"
-repository = "tests/repository.txt"
-test_mode = true
+package = "libc6"
+repository = "https://archive.ubuntu.com/ubuntu/"
+test_mode = false
 output_file = "graph.png"

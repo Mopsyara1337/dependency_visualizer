@@ -127,21 +127,23 @@ def main():
         return
 
     try:
-        graph, missing_packages = gr.build_dependency_graph(
-            package_index, config["package"])
+        reverse_graph = gr.build_reverse_graph(package_index)
+        reverse_dependencies = gr.find_reverse_dependencies(
+            reverse_graph, config["package"]
+        )
     except ValueError as e:
         print(f"Ошибка построения графа: {e}")
         return
 
-    print(f"Пакетов в графе: {len(graph)}")
-    print(f"Отсутствующих пакетов: {len(missing_packages)}")
+    print(f"Найдено обратных зависимостей для пакета {config["package"]}: "
+          f"{len(reverse_dependencies)}")
+    print("\nОбратные зависимости:")
 
-    print("Найденные пакеты:")
-    for name in graph:
-        print(name)
+    if not reverse_dependencies:
+        print("Обратные зависимости отсутствуют")
 
-    print("\nПакеты, отсутствующие в индексе")
-    print(missing_packages)
+    for package in sorted(reverse_dependencies):
+        print(package)
 
 if __name__ == '__main__':
     main()
