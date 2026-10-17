@@ -1,4 +1,4 @@
-package = "libc6"
+package = "base-files"
 repository = "https://archive.ubuntu.com/ubuntu/"
 test_mode = false
-output_file = "graph.png"
+output_file = "base-files.png"

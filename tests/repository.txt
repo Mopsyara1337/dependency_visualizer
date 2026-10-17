@@ -2,7 +2,7 @@ Package: A
 Depends: B, C
 
 Package: B
-Depends: D
+Depends: D | C
 
 Package: C
 Depends: D

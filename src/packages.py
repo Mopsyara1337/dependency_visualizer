@@ -7,7 +7,7 @@ PACKAGES_INDEX_PATH = "dists/noble/main/binary-amd64/Packages.gz"
 
 def fetch_packages(repository_url):
     url = urljoin(repository_url, PACKAGES_INDEX_PATH)
-    with urlopen(url, timeout = REQUEST_TIMEOUT_SECONDS) as response:
+    with urlopen(url, timeout=REQUEST_TIMEOUT_SECONDS) as response:
         file = response.read()
         packages_data = gzip.decompress(file).decode("utf-8")
         return packages_data

@@ -11,3 +11,7 @@ __pycache__/
 
 # Generated files
 *.png
+*.mmd
+!docs/images/*.png
+
+node_modules/

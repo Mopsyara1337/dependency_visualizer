@@ -5,9 +5,11 @@ from pathlib import Path
 from urllib.parse import urlparse
 from urllib.error import HTTPError
 from urllib.error import URLError
+import subprocess
 
 import packages as pak
 import graph as gr
+import visualization as viz
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 
@@ -127,23 +129,27 @@ def main():
         return
 
     try:
-        reverse_graph = gr.build_reverse_graph(package_index)
-        reverse_dependencies = gr.find_reverse_dependencies(
-            reverse_graph, config["package"]
-        )
+        graph, missing_packages = gr.build_dependency_graph(
+            package_index, config["package"])
     except ValueError as e:
         print(f"Ошибка построения графа: {e}")
         return
 
-    print(f"Найдено обратных зависимостей для пакета {config["package"]}: "
-          f"{len(reverse_dependencies)}")
-    print("\nОбратные зависимости:")
+    mermaid_code = viz.generate_mermaid(graph, missing_packages)
+    try:
+        viz.save_graph_png(mermaid_code, config["output_file"])
+    except subprocess.CalledProcessError as e:
+        print(f"Ошибка создания PNG: Mermaid CLI завершился "
+              f"с кодом {e.returncode}")
+        return
+    except subprocess.TimeoutExpired as e:
+        print(f"Превышено время ожидания Mermaid CLI: {e.timeout} с")
+        return
+    except OSError as e:
+        print(f"Ошибка запуска Mermaid CLI или работы с файлами: {e}")
+        return
 
-    if not reverse_dependencies:
-        print("Обратные зависимости отсутствуют")
-
-    for package in sorted(reverse_dependencies):
-        print(package)
+    print(f"Граф сохранен в файл {config['output_file']}")
 
 if __name__ == '__main__':
     main()

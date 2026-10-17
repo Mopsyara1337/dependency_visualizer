@@ -1,0 +1,27 @@
+{
+  "name": "dependency_visualizer",
+  "version": "1.0.0",
+  "description": "Консольное приложение на Python для анализа и визуализации\r графа зависимостей пакетов Ubuntu (APT).",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mopsyara1337/dependency_visualizer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Mopsyara1337/dependency_visualizer/issues"
+  },
+  "homepage": "https://github.com/Mopsyara1337/dependency_visualizer#readme",
+  "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^12.0.0"
+  }
+}
